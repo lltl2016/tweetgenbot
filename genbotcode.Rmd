@@ -1,0 +1,113 @@
+---
+title: "COMP440 Final Project: Genbot"
+author: "Amber Wetzel and Lang Si"
+date: "April 8, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tidytext))
+suppressPackageStartupMessages(library(httpuv))
+suppressPackageStartupMessages(library(twitteR))
+suppressPackageStartupMessages(library(rtweet))
+```
+
+## Setup
+
+```{r}
+
+appname <- "get from apps.twitter"
+api_key <- "get from apps.twitter"
+api_secret <- "get from apps.twitter"
+access_token <- "get from apps.twitter"
+access_token_secret <- "get from apps.twitter"
+options(httr_oauth_cache = TRUE)
+
+#authorize for twitteR
+setup_twitter_oauth(api_key, api_secret, access_token, access_token_secret)
+
+# authorize for rtweet
+##Shouldn't need yet, try going without it
+#twitter_token <- create_token(
+#  app = appname,
+#  consumer_key = api_key,
+#  consumer_secret = api_secret)
+
+```
+
+Bot posts to and from https://twitter.com/tweetgenbot
+
+```{r}
+#Thanks to Taylor Grant for interactive twitterbot guide https://rstudio-pubs-static.s3.amazonaws.com/132986_5fbf5123bfcb452998d7ff1d726410c1.html
+
+##Step 1: recieve and clean the input
+# genesis for data ID
+dms <- dmGet()
+x <- dms[[1]]
+id1 <- data.frame(id1 = as.numeric(x$getId()))
+write_tsv(id1, "id1.tsv")
+# read in current tweetID of last DM responded to
+curr_id <- as.numeric(read_table("id1.tsv"))
+
+# establish search words worth replying to
+## this is spelled out specifically in the bot account's profile:
+## "Suggest genbot's next tweet by DMing it "tweet about TOPIC""
+## or can be done creatively
+words <- c('tweet', 'about')
+
+# gather dms and pull out unique tweetIDs
+dms <- dmGet(sinceID = curr_id)
+test_id <- sapply(dms, function(x) as.vector(as.numeric(x$getId())))
+
+# test if any DMs are new compared to benchmark
+new <- length(test_id[test_id > curr_id])
+
+if (new == 0) {
+  NULL
+}
+if (new > 0) {
+  # pull out screen_name of sender and tweet text
+  test$name <- sapply(dms, function(x) as.vector(x$getSenderSN()))[c(seq(new))]
+  test$text <- sapply(dms, function(x) as.vector(x$getText()))[c(seq(new))]
+  
+  # test to see if DM matches our search phrase, keep those names that do
+  final <- as.data.frame(test[which(str_detect(str_to_lower(test$text), 
+                                                     str_to_lower(paste(words, collapse = ' '))) == TRUE)])
+  
+  # searching and generating tweet
+  if (length(final$name) > 0) {
+    
+    # make sure not sending multiple DMs to same account
+    final <- final[!duplicated(final$name),]
+   
+     # send DM response to each account
+    for (i in 1:length(final$name)) {
+      ##Step 2: get search term and search on it
+      search <- sub('.*tweet about\\s*', '', final$text[i])
+      #data_df <- search_tweets(search, n = 1000, include_rts = FALSE)
+
+      ##Step 3: Clean the search results (get rid of @'s, links, pictures)
+      #remove urls (also removes pictures)
+      #data_df$text <- rm_url(data_df$text)
+      #remove hashtags and @'s
+      #data_df$text <- gsub("[#@]\\S+", '',data_df$text)
+      #TODO: any other cleaning necessary to make an average tweet out of it
+    
+      ##Step 4: generate the tweet
+      #TODO: DO THAT
+      tweet <- paste("My programming isn't done yet, but you told me to tweet about", search, sep=" ")
+      
+      dmSend(tweet, final$name[i])
+    }
+  }
+  else if (length(final$name) == 0) {
+    NULL
+  }
+}
+
+# write over the tweetID file with updated tweetID 
+tmp_id <- data.frame(test_id[1])
+write_tsv(tmp_id, "id1.tsv")
+
+```
