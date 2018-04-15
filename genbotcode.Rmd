@@ -41,20 +41,23 @@ Bot posts to and from https://twitter.com/tweetgenbot
 ```{r}
 #Thanks to Taylor Grant for interactive twitterbot guide https://rstudio-pubs-static.s3.amazonaws.com/132986_5fbf5123bfcb452998d7ff1d726410c1.html
 
-##Step 1: recieve and clean the input
+##COMMENT THIS OUT AFTER FIRST USE
 # genesis for data ID
-dms <- dmGet()
-x <- dms[[1]]
-id1 <- data.frame(id1 = as.numeric(x$getId()))
-write_tsv(id1, "id1.tsv")
+#dms <- dmGet()
+#x <- dms[[1]]
+#id1 <- data.frame(id1 = as.numeric(x$getId()))
+#write_tsv(id1, "id1.tsv")
 # read in current tweetID of last DM responded to
+
+
+##Step 1: recieve and clean the input
 curr_id <- as.numeric(read_table("id1.tsv"))
 
 # establish search words worth replying to
 ## this is spelled out specifically in the bot account's profile:
 ## "Suggest genbot's next tweet by DMing it "tweet about TOPIC""
 ## or can be done creatively
-words <- c('tweet', 'about')
+words <- c('tweet about')
 
 # gather dms and pull out unique tweetIDs
 dms <- dmGet(sinceID = curr_id)
@@ -68,12 +71,12 @@ if (new == 0) {
 }
 if (new > 0) {
   # pull out screen_name of sender and tweet text
-  test$name <- sapply(dms, function(x) as.vector(x$getSenderSN()))[c(seq(new))]
-  test$text <- sapply(dms, function(x) as.vector(x$getText()))[c(seq(new))]
+  name <- sapply(dms, function(x) as.vector(x$getSenderSN()))[c(seq(new))]
+  text <- sapply(dms, function(x) as.vector(x$getText()))[c(seq(new))]
+  test <- data.frame(name,text)
   
   # test to see if DM matches our search phrase, keep those names that do
-  final <- as.data.frame(test[which(str_detect(str_to_lower(test$text), 
-                                                     str_to_lower(paste(words, collapse = ' '))) == TRUE)])
+  final <- subset(test, grepl(words, test$text, fixed=TRUE))
   
   # searching and generating tweet
   if (length(final$name) > 0) {
