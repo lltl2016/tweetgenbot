@@ -39,6 +39,20 @@ setup_twitter_oauth(api_key, api_secret, access_token, access_token_secret)
 Bot posts to and from https://twitter.com/tweetgenbot
 
 ```{r}
+##Step 0: Follow anyone who has followed genbot so message requests are accepted
+#Uses rtweet code instead of twitteR
+followers <- get_followers("tweetgenbot", n = 25, page = "-1", retryonratelimit = FALSE, parse = TRUE, verbose = FALSE, token = NULL)
+following <- get_friends("tweetgenbot", n = 25, retryonratelimit = FALSE, page = "-1", parse = TRUE, verbose = FALSE, token = NULL)
+#reduce followers to only new followers
+followers <- followers[!(followers$user_id %in% following$user_id),]
+
+  for (i in 1:length(followers$user_id)) {
+      post_follow(followers$user_id[i], destroy = FALSE, mute = FALSE, notify = FALSE, retweets = TRUE, token = NULL)
+}
+
+```
+
+```{r}
 #Thanks to Taylor Grant for interactive twitterbot guide https://rstudio-pubs-static.s3.amazonaws.com/132986_5fbf5123bfcb452998d7ff1d726410c1.html
 
 ##COMMENT THIS OUT AFTER FIRST USE
@@ -48,7 +62,6 @@ Bot posts to and from https://twitter.com/tweetgenbot
 #id1 <- data.frame(id1 = as.numeric(x$getId()))
 #write_tsv(id1, "id1.tsv")
 # read in current tweetID of last DM responded to
-
 
 ##Step 1: recieve and clean the input
 curr_id <- as.numeric(read_table("id1.tsv"))
@@ -95,6 +108,10 @@ if (new > 0) {
       #data_df$text <- rm_url(data_df$text)
       #remove hashtags and @'s
       #data_df$text <- gsub("[#@]\\S+", '',data_df$text)
+      #remove tweets with only whitespace
+      #data_df <- data_df[!grepl("^\\s*$", data_df$text),]
+      #remove duplicates
+      #data_df <- data_df[!duplicated(data_df$text),]
       #TODO: any other cleaning necessary to make an average tweet out of it
     
       ##Step 4: generate the tweet
