@@ -11,6 +11,7 @@ suppressPackageStartupMessages(library(tidytext))
 suppressPackageStartupMessages(library(httpuv))
 suppressPackageStartupMessages(library(twitteR))
 suppressPackageStartupMessages(library(rtweet))
+suppressPackageStartupMessages(library(qdapRegex))
 ```
 
 ## Setup
@@ -101,21 +102,30 @@ if (new > 0) {
     for (i in 1:length(final$name)) {
       ##Step 2: get search term and search on it
       search <- sub('.*tweet about\\s*', '', final$text[i])
-      #data_df <- search_tweets(search, n = 1000, include_rts = FALSE)
+      data_df <- search_tweets(search, n = 1000, include_rts = FALSE)
 
       ##Step 3: Clean the search results (get rid of @'s, links, pictures)
       #remove urls (also removes pictures)
-      #data_df$text <- rm_url(data_df$text)
+      data_df$text <- rm_url(data_df$text)
       #remove hashtags and @'s
-      #data_df$text <- gsub("[#@]\\S+", '',data_df$text)
+      data_df$text <- gsub("[#@]\\S+", '',data_df$text)
+      #remove emojis and bizzare signs
+      data_df$text <- iconv(data_df$text, from = "latin1", to = "ASCII", sub="")
+      #remove unneccessary whitespace
+      data_df$text <- gsub("[ \t]{2,}", " ", data_df$text)
+      data_df$text <- gsub( "^\\s+|\\s+$", "", data_df$text)
       #remove tweets with only whitespace
-      #data_df <- data_df[!grepl("^\\s*$", data_df$text),]
+      data_df <- data_df[!grepl("^\\s*$", data_df$text),]
       #remove duplicates
-      #data_df <- data_df[!duplicated(data_df$text),]
-      #TODO: any other cleaning necessary to make an average tweet out of it
+      data_df <- data_df[!duplicated(data_df$text),]
+
+      #Write text to .txt file so model can use it- rerun every time
+      write.table(data_df$text, file = "tweetText.txt", sep = "\t", quote = FALSE,
+            row.names = FALSE)
     
       ##Step 4: generate the tweet
-      #TODO: DO THAT
+      trainingText <- read_file('tweetText.txt')
+      ##TODO: ADD GENERATIVE MODEL HERE, REPLACE FOLLOWING LINE
       tweet <- paste("My programming isn't done yet, but you told me to tweet about", search, sep=" ")
       
       dmSend(tweet, final$name[i])
