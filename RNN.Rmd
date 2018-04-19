@@ -21,18 +21,18 @@ library(tokenizers)
 ```{r}
 # Parameters --------------------------------------------------------------
 
-maxlen <- 40
+maxlen <- 3
 
 # Data Preparation --------------------------------------------------------
 
 # Retrieve text
-path <- #Your file here. Potentially a txt file.
+path <- "C:\\Users\\Lang\\OneDrive\\Macalester\\COMP440\\tweetgenbot\\tweetText.txt"
 
 # Load, collapse, and tokenize text
 text <- read_lines(path) %>%
   str_to_lower() %>%
   str_c(collapse = "\n") %>%
-  tokenize_characters(strip_non_alphanum = FALSE, simplify = TRUE) # Character based. So you know... We can also try word based.
+  tokenize_words( simplify = TRUE) # Character based. So you know... We can also try word based.
 
 print(sprintf("corpus length: %d", length(text)))
 
@@ -53,12 +53,12 @@ dataset <- map(
 dataset <- transpose(dataset)
 
 # Vectorization
-x <- array(0, dim = c(length(dataset$sentece), maxlen, length(chars)))
+X <- array(0, dim = c(length(dataset$sentece), maxlen, length(chars)))
 y <- array(0, dim = c(length(dataset$sentece), length(chars)))
 
 for(i in 1:length(dataset$sentece)){
   
-  x[i,,] <- sapply(chars, function(x){ #3D array
+  X[i,,] <- sapply(chars, function(x){ #3D array
     as.integer(x == dataset$sentece[[i]])
   })
   
@@ -97,12 +97,20 @@ sample_mod <- function(preds, temperature = 1){
     as.integer() %>%
     which.max()
 }
+```
 
-on_epoch_end <- function(epoch, logs) {
+```{r}
+for(iteration in 1:60){
   
-  cat(sprintf("epoch: %02d ---------------\n\n", epoch))
+  cat(sprintf("iteration: %02d ---------------\n\n", iteration))
   
-  for(diversity in c(0.2, 0.5, 1, 1.2)){
+  model %>% fit(
+    X,y,
+    batch_size = 128,
+    epochs = 1
+  )
+  
+  for(diversity in c(0.2, 0.5)){
     
     cat(sprintf("diversity: %f ---------------\n\n", diversity))
     
@@ -110,7 +118,7 @@ on_epoch_end <- function(epoch, logs) {
     sentence <- text[start_index:(start_index + maxlen - 1)]
     generated <- ""
     
-    for(i in 1:400){
+    for(i in 1:20){
       
       x <- sapply(chars, function(x){
         as.integer(x == sentence)
@@ -122,6 +130,7 @@ on_epoch_end <- function(epoch, logs) {
       next_char <- chars[next_index]
       
       generated <- str_c(generated, next_char, collapse = "")
+      generated <-paste(generated," ")
       sentence <- c(sentence[-1], next_char)
       
     }
@@ -131,14 +140,5 @@ on_epoch_end <- function(epoch, logs) {
     
   }
 }
-
-print_callback <- callback_lambda(on_epoch_end = on_epoch_end)
-
-model %>% fit(
-  x, y,
-  batch_size = 128,
-  epochs = 1,
-  callbacks = print_callback
-)
 ```
 
