@@ -12,35 +12,33 @@ knitr::opts_chunk$set(echo = TRUE)
 This is our training model right now:
 ```{r}
 library(keras)
+
 library(readr)
 library(stringr)
 library(purrr)
+library(tidyverse)
 library(tokenizers)
 ```
 
 ```{r}
 # Parameters --------------------------------------------------------------
-
-maxlen <- 3
+ 
+maxlen <- 3  #This parameter controls the number of words the model puts in, in this case, the model considered all tri-grams.
 
 # Data Preparation --------------------------------------------------------
 
 # Retrieve text
-path <- "C:\\Users\\Lang\\OneDrive\\Macalester\\COMP440\\tweetgenbot\\tweetText.txt"
+path <- "C:\\Users\\Lang\\OneDrive\\Macalester\\COMP440\\tweetgenbot\\tweetText.txt" 
 
 # Load, collapse, and tokenize text
 text <- read_lines(path) %>%
   str_to_lower() %>%
   str_c(collapse = "\n") %>%
-  tokenize_words( simplify = TRUE) # Character based. So you know... We can also try word based.
+  tokenize_words( simplify = TRUE) # Tokenize the text into words.
 
-print(sprintf("corpus length: %d", length(text)))
-
-chars <- text %>%
+chars <- text %>% 
   unique() %>%
-  sort()
-
-print(sprintf("total chars: %d", length(chars)))  
+  sort() #Find unique words
 ```
 
 ```{r}
@@ -48,21 +46,22 @@ print(sprintf("total chars: %d", length(chars)))
 dataset <- map(
   seq(1, length(text) - maxlen - 1, by = 3), 
   ~list(sentece = text[.x:(.x + maxlen - 1)], next_char = text[.x + maxlen])
-  )
+  ) #Map the data set containing all the bigrams and the next word after that.
 
 dataset <- transpose(dataset)
 
 # Vectorization
-X <- array(0, dim = c(length(dataset$sentece), maxlen, length(chars)))
-y <- array(0, dim = c(length(dataset$sentece), length(chars)))
+X <- array(0, dim = c(length(dataset$sentece), maxlen, length(chars))) #Construct a 3D array
+y <- array(0, dim = c(length(dataset$sentece), length(chars))) #2D array for 
 
+# This for loop basically construct a machine learning model so that it can predict the next word appears after the trigram.
 for(i in 1:length(dataset$sentece)){
   
-  X[i,,] <- sapply(chars, function(x){ #3D array
+  X[i,,] <- sapply(chars, function(x){ #3D array, put all the trigrams into X
     as.integer(x == dataset$sentece[[i]])
   })
   
-  y[i,] <- as.integer(chars == dataset$next_char[[i]]) #2D array
+  y[i,] <- as.integer(chars == dataset$next_char[[i]]) #2D array # Take the next character into y. 
   
 }
 ```
@@ -70,18 +69,18 @@ for(i in 1:length(dataset$sentece)){
 ```{r}
 # Model Definition --------------------------------------------------------
 
-model <- keras_model_sequential()
+model <- keras_model_sequential() #Seq2Seq model of LSTM (RNN)
 
 model %>%
-  layer_lstm(128, input_shape = c(maxlen, length(chars))) %>%
-  layer_dense(length(chars)) %>%
-  layer_activation("softmax")
+  layer_lstm(128, input_shape = c(maxlen, length(chars))) %>% #Initiate a LSTM model with 128 input unit
+  layer_dense(length(chars)) %>% #Output units size is the total unique words length
+  layer_activation("softmax") #Use softmax function to apply on the output.
 
-optimizer <- optimizer_rmsprop(lr = 0.01)
+optimizer <- optimizer_rmsprop(lr = 0.01) #Optimize the result using RMSProp. Suitable for RNN. 
 
 model %>% compile(
   loss = "categorical_crossentropy", 
-  optimizer = optimizer
+  optimizer = optimizer #Using cross entropy to calculate loss.
 )
 ```
 
