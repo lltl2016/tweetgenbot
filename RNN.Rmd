@@ -11,13 +11,19 @@ knitr::opts_chunk$set(echo = TRUE)
 
 This is our training model right now:
 ```{r}
-library(keras)
+#Must first install keras/tensorflow like so:
+# https://www.tensorflow.org/versions/master/install/install_windows
+#assumes you downloaded via anaconda
+#type "activate r-tensorflow" into anaconda terminal before running
+install.packages("keras")
+suppressPackageStartupMessages(library(keras))
+install_keras(method="conda")
 
-library(readr)
-library(stringr)
-library(purrr)
-library(tidyverse)
-library(tokenizers)
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(purrr))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tokenizers))
 ```
 
 ```{r}
