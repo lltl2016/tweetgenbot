@@ -47,8 +47,10 @@ following <- get_friends("tweetgenbot", n = 25, retryonratelimit = FALSE, page =
 #reduce followers to only new followers
 followers <- followers[!(followers$user_id %in% following$user_id),]
 
-  for (i in 1:length(followers$user_id)) {
+  if(length(followers$user_id)!=0){
+    for (i in 1:length(followers$user_id)) {
       post_follow(followers$user_id[i], destroy = FALSE, mute = FALSE, notify = FALSE, retweets = TRUE, token = NULL)
+  }
 }
 
 ```
