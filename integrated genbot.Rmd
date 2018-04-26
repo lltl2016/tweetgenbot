@@ -134,6 +134,8 @@ if (new > 0) {
             row.names = FALSE)
     
       ##Step 4: generate the tweet
+      #Thanks to tensorflow documentation for the base
+      # https://tensorflow.rstudio.com/keras/articles/examples/lstm_text_generation.html
       
       # Data Preparation --------------------------------------------------------
       path <- read_file('tweetText.txt')
