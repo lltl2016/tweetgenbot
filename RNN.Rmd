@@ -27,6 +27,9 @@ suppressPackageStartupMessages(library(tokenizers))
 ```
 
 ```{r}
+#Thanks to tensorflow documentation for the base
+# https://tensorflow.rstudio.com/keras/articles/examples/lstm_text_generation.html
+
 # Parameters --------------------------------------------------------------
  
 maxlen <- 3  #This parameter controls the number of words the model puts in, in this case, the model considered all tri-grams.
