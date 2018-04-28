@@ -115,6 +115,8 @@ if (new > 0) {
       data_df <- search_tweets(search, n = 3000, include_rts = FALSE)
 
       ##Step 3: Clean the search results (get rid of @'s, links, pictures)
+      #filter for english tweets
+      data_df <- subset(data_df,data_df$lang=="en")
       #remove urls (also removes pictures)
       data_df$text <- rm_url(data_df$text)
       #remove hashtags and @'s
