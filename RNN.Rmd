@@ -9,7 +9,8 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is our training model right now:
+This is our training model right now: Credit: https://tensorflow.rstudio.com/keras/articles/examples/lstm_text_generation.html
+We convert Char RNN to Word RNN by slightly modifying the parameter and explore several different options on Model specification.
 ```{r}
 library(keras)
 
@@ -23,7 +24,7 @@ library(tokenizers)
 ```{r}
 # Parameters --------------------------------------------------------------
  
-maxlen <- 3  #This parameter controls the number of words the model puts in, in this case, the model considered all tri-grams.
+maxlen <- 5  #This parameter controls the number of words the model puts in, in this case, the model considered all 5-grams.
 
 # Data Preparation --------------------------------------------------------
 
@@ -46,7 +47,7 @@ chars <- text %>%
 dataset <- map(
   seq(1, length(text) - maxlen - 1, by = 3), 
   ~list(sentece = text[.x:(.x + maxlen - 1)], next_char = text[.x + maxlen])
-  ) #Map the data set containing all the bigrams and the next word after that.
+  ) #Map the data set containing all the 5-grams and the next word after that.
 
 dataset <- transpose(dataset)
 
@@ -57,7 +58,7 @@ y <- array(0, dim = c(length(dataset$sentece), length(chars))) #2D array for
 # This for loop basically construct a machine learning model so that it can predict the next word appears after the trigram.
 for(i in 1:length(dataset$sentece)){
   
-  X[i,,] <- sapply(chars, function(x){ #3D array, put all the trigrams into X
+  X[i,,] <- sapply(chars, function(x){ #3D array, put all the 5-grams into X
     as.integer(x == dataset$sentece[[i]])
   })
   
@@ -72,7 +73,7 @@ for(i in 1:length(dataset$sentece)){
 model <- keras_model_sequential() #Seq2Seq model of LSTM (RNN)
 
 model %>%
-  layer_lstm(128, input_shape = c(maxlen, length(chars))) %>% #Initiate a LSTM model with 128 input unit
+  layer_lstm(512, input_shape = c(maxlen, length(chars))) %>% #Initiate a LSTM model with 128 hidden unit
   layer_dense(length(chars)) %>% #Output units size is the total unique words length
   layer_activation("softmax") #Use softmax function to apply on the output.
 
