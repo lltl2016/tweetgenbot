@@ -201,7 +201,7 @@ if (new > 0) {
           which.max()
       }
       
-      for(iteration in 1:60){
+      for(iteration in 1:40){
         
         cat(sprintf("iteration: %02d ---------------\n\n", iteration))
         
@@ -211,9 +211,9 @@ if (new > 0) {
           epochs = 1
         )
         
-        for(diversity in c(0.2, 0.5)){
+     
           
-          cat(sprintf("diversity: %f ---------------\n\n", diversity))
+          cat(sprintf("diversity: %f ---------------\n\n", 0.2))
           
           start_index <- sample(1:(length(text) - maxlen), size = 1)
           sentence <- text[start_index:(start_index + maxlen - 1)]
@@ -227,7 +227,7 @@ if (new > 0) {
             x <- array_reshape(x, c(1, dim(x)))
             
             preds <- predict(model, x)
-            next_index <- sample_mod(preds, diversity)
+            next_index <- sample_mod(preds, 0.2)
             next_char <- chars[next_index]
             
             generated <- str_c(generated, next_char, collapse = "")
@@ -240,7 +240,7 @@ if (new > 0) {
       
       dmSend(generated, final$name[i])
     }
-  }
+  
   else if (length(final$name) == 0) {
     NULL
   }
