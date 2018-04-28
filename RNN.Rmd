@@ -12,16 +12,25 @@ knitr::opts_chunk$set(echo = TRUE)
 This is our training model right now: Credit: https://tensorflow.rstudio.com/keras/articles/examples/lstm_text_generation.html
 We convert Char RNN to Word RNN by slightly modifying the parameter and explore several different options on Model specification.
 ```{r}
-library(keras)
+#Must first install keras/tensorflow like so:
+# https://www.tensorflow.org/versions/master/install/install_windows
+#assumes you downloaded via anaconda
+#type "activate r-tensorflow" into anaconda terminal before running
+install.packages("keras")
+suppressPackageStartupMessages(library(keras))
+install_keras(method="conda")
 
-library(readr)
-library(stringr)
-library(purrr)
-library(tidyverse)
-library(tokenizers)
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(stringr))
+suppressPackageStartupMessages(library(purrr))
+suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(tokenizers))
 ```
 
 ```{r}
+#Thanks to tensorflow documentation for the base
+# https://tensorflow.rstudio.com/keras/articles/examples/lstm_text_generation.html
+
 # Parameters --------------------------------------------------------------
  
 maxlen <- 5  #This parameter controls the number of words the model puts in, in this case, the model considered all 5-grams.
