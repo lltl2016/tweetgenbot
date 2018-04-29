@@ -100,7 +100,7 @@ if (new > 0) {
   test <- data.frame(name,text)
   
   # test to see if DM matches our search phrase, keep those names that do
-  final <- subset(test, grepl(words, test$text, fixed=TRUE))
+  final <- subset(test, grepl(words, tolower(test$text), fixed=TRUE))
   
   # searching and generating tweet
   if (length(final$name) > 0) {
